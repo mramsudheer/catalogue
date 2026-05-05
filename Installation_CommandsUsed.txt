@@ -20,6 +20,7 @@ INSTALL PLUGINS
 2. Pipeline Utility Steps
 3. AWS Credentials
 4. Pipeline: AWS Steps
+5. SonarQube Scanner
 
 JENKINS AGENT
 =============
@@ -88,8 +89,37 @@ We can create using Terraform or From console
     To see the Push commands
         Amazon ECR ->Private registry->Repositories->roboshop/catalogue-> View Push commands
 
+CREATE SonarQube
+===============
+marketplace -> SonarQube CE on AWS t2.medium
+Advanced details -> Spot Instance
+
+ON JENKINS SERVER
+mkdir GitFiles
+cd GitFiles
+git clone https://github.com/mramsudheer/catalogue.git
+cd catalog
+chmod 400 Rams.pem
+ssh -i <key.pem> ubuntu@ipaddress
+cat /opt/default-sonar-login.txt
+<SonarQubePublicip>:90000
+
+Generate Tokens
+http://<SonarQubePublicip>:9000/account/security
+    Name: Jenkins
+    Type: Global Analysis Token
+    Expires on : 30 days
+    Notedown the generated tocken(sqa_8f0062ff4cbf9d15f6cea8bb189136474b9f6d96)
 
 
+
+In Jenkins URL -> Settings -> tools-> SonarQube Scanner installations -> Add SonarQube installations
+    SonarQube Scanner
+    Name:Sonar-8.0
+In Jenkins URL -> Settings -> System -> SonarQube servers -> SonarQube installations - Add
+    Name:sonar-server
+    Server URL:http://<SonarQubePublicip>:90000
+Create a Credential:secret text with generated tocken abv(sonar-creds)
 
 CREATING WEB-HOOK
 =================

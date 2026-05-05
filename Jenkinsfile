@@ -34,6 +34,16 @@ pipeline{
                 }
             }
         }
+        stage('SonarQube Analysis'){
+            tools{
+                sonar 'Sonar-8.0'
+            }
+            steps{
+                script{
+                    
+                }
+            }
+        }
         stage('Build Docker Image'){
             steps{
                 /*script{
@@ -57,7 +67,7 @@ pipeline{
     post {
         always{
             //Clean Workspace, Saves Disk Space, 
-            
+
             //It ensures that the next time the job runs, 
             // it starts with a completely empty folder. 
             // This prevents old files from a previous run 
