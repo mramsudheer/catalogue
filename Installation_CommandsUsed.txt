@@ -1,0 +1,89 @@
+https://github.com/mramsudheer/jenkins.git
+
+JENKINS MASTER
+==============
+
+sudo curl -o /etc/yum.repos.d/jenkins.repo     https://pkg.jenkins.io/rpm-stable/jenkins.repo
+sudo dnf install fontconfig java-21-openjdk -y
+sudo dnf install jenkins -y
+sudo systemctl daemon-reload
+sudo systemctl enable jenkins
+sudo systemctl restart jenkins
+
+<publicip>:8080
+
+PASSWORD:
+cat /var/lib/jenkins/secrets/initialAdminPassword
+
+INSTALL PLUGINS
+1. Pipeline stage view
+2. Pipeline Utility Steps
+
+JENKINS AGENT
+=============
+Create with 50GB and install java
+sudo dnf install fontconfig java-21-openjdk -y
+
+sudo lsblk
+sudo growpart /dev/nvme0n1 4
+sudo lvextend -L +10G /dev/mapper/RootVG-homeVol
+sudo lvextend -L +10G /dev/mapper/RootVG-rootVol
+sudo lvextend -L +10G /dev/mapper/RootVG-varVol
+sudo xfs_growfs /
+sudo xfs_growfs /home
+sudo xfs_growfs /var
+df -hT
+
+Install npm in agent
+dnf module disable nodejs -y
+dnf module enable nodejs:20 -y
+dnf install nodejs -y
+
+Install Docker
+# Docker
+dnf -y install dnf-plugins-core
+dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
+dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+systemctl start docker
+systemctl enable docker
+usermod -aG docker ec2-user
+Logoff and Login
+
+CREATE A FOLDER
+In Jenkins Master URL -> New Item -> Folder(ROBOSHOP)
+in this folder -> New Item -> pipeline(catalogue) -> Configure -> Pipeline -> Pipeline script from SCM -> 
+    SCM: Git
+    Repository URL:https://github.com/mramsudheer/catalogue.git
+    Branch Specifier: main
+apply, save and build
+
+
+
+
+
+CREATING A NODE
+===============
+In Jenkins Master URL -> your project -> settings -> Nodes -> roboshop
+Number of executors:3
+Remote root directory: /home/ec2-user/jenkins-agent (It automatically creates in NODE)
+Labels: ROBOSHOP
+Usage: Only build Jobs with label expressions matching this Node
+Launch method: Launch agents via SSH
+Host: <Agent Private IP>
+Credentials:
+    ID:ssh-auth
+Host Key Verification Strategy:Non verifying Verification Strategy
+Availability: Keep this agent online as mush as possible
+
+CREATING WEB-HOOK
+=================
+https://github.com/mramsudheer/jenkins.git
+Settings -> webhooks -> Create 
+Payload URL: http://<master publicip>:8080/github-webhook/
+Content type: application/json
+SSL verification: Disable
+Which events would you like to trigger this webhook?
+    Just the push event.
+NOW in Jenkins URL
+Hello-pipeline(Your Project) -> Configure -> General -> Triggers -> GitHub hook trigger for GITScm polling
+
