@@ -18,6 +18,8 @@ cat /var/lib/jenkins/secrets/initialAdminPassword
 INSTALL PLUGINS
 1. Pipeline stage view
 2. Pipeline Utility Steps
+3. AWS Credentials
+4. Pipeline: AWS Steps
 
 JENKINS AGENT
 =============
@@ -39,7 +41,7 @@ dnf module disable nodejs -y
 dnf module enable nodejs:20 -y
 dnf install nodejs -y
 
-Install Docker
+Install Docker in agent
 # Docker
 dnf -y install dnf-plugins-core
 dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
@@ -48,18 +50,6 @@ systemctl start docker
 systemctl enable docker
 usermod -aG docker ec2-user
 Logoff and Login
-
-CREATE A FOLDER
-In Jenkins Master URL -> New Item -> Folder(ROBOSHOP)
-in this folder -> New Item -> pipeline(catalogue) -> Configure -> Pipeline -> Pipeline script from SCM -> 
-    SCM: Git
-    Repository URL:https://github.com/mramsudheer/catalogue.git
-    Branch Specifier: main
-apply, save and build
-
-
-
-
 
 CREATING A NODE
 ===============
@@ -71,9 +61,35 @@ Usage: Only build Jobs with label expressions matching this Node
 Launch method: Launch agents via SSH
 Host: <Agent Private IP>
 Credentials:
-    ID:ssh-auth
+    1. ID:ssh-auth (ssh-auth)
+    2. AWS Credentials (aws-creds)
 Host Key Verification Strategy:Non verifying Verification Strategy
 Availability: Keep this agent online as mush as possible
+
+DISCONNECT AND CONNECT AGAIN THE NODE IF YOU SEE THE FOLLOWING ERROR
++ docker build -t catalogue:1.0.0 .
+ERROR: permission denied while trying to connect to the docker API at unix:///var/run/docker.sock
+
+CREATE A FOLDER
+===============
+In Jenkins Master URL -> New Item -> Folder(ROBOSHOP)
+in this folder -> New Item -> pipeline(catalogue) -> Configure -> Pipeline -> Pipeline script from SCM -> 
+    SCM: Git
+    Repository URL:https://github.com/mramsudheer/catalogue.git
+    Branch Specifier: main
+apply, save and build
+
+NOW CREATE ECR AND PUSH THE IMAGE
+=============================
+We can create using Terraform or From console
+    Amazon ECR -> Private registry ->Repositories -> Create private repository
+    General settings -> Repository name -> roboshop/catalogue
+        Image tag settings: Mutable
+    To see the Push commands
+        Amazon ECR ->Private registry->Repositories->roboshop/catalogue-> View Push commands
+
+
+
 
 CREATING WEB-HOOK
 =================
