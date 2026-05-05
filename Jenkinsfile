@@ -39,7 +39,7 @@ pipeline{
                 script{
                     def scannerHome = tool name: 'Sonar-8.0' //Agent configuration Name
                     withSonarQubeEnv('sonar-server') { // 'sonar-server' must match your Jenkins=>System Config name(this is for analysing and uploading to the server)
-                        sh "${scannerHome}/bin/sonnar-scanner" // This commands reads sonar-project.properties file
+                        sh "${scannerHome}/bin/sonar-scanner" // This commands reads sonar-project.properties file
                     }
                 }
             }
