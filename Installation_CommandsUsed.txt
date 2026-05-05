@@ -116,6 +116,7 @@ http://<SonarQubePublicip>:9000/account/security
 In Jenkins URL -> Settings -> tools-> SonarQube Scanner installations -> Add SonarQube installations
     SonarQube Scanner
     Name:Sonar-8.0
+    Sonar-8.0
 In Jenkins URL -> Settings -> System -> SonarQube servers -> SonarQube installations - Add
     Name:sonar-server
     Server URL:http://<SonarQubePublicip>:90000
