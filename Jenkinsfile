@@ -1,7 +1,7 @@
 pipeline{
     agent{
         node{
-            lable: 'roboshop'
+            label: 'roboshop'
         }
     }
     environment{
@@ -14,7 +14,7 @@ pipeline{
         stage('Read version'){
             steps{
                 // Load and parse the JSON file
-                def packageJson = readJSON file: 'package.json'
+                packageJson = readJSON file: 'package.json'
 
                 // Access the Fields Directly
                 appVersion = packageJson.version
