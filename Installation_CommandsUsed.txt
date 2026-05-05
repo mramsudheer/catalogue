@@ -125,8 +125,34 @@ Create a Credential:secret text with generated tocken abv(sonar-creds)
 After build success, in SonarQube server url we can see roboshop-catalogue 
     under Administration->Projects-> Management
 
+in SonarQube server url, Administration -> General Settings-> Mode-> Standard
+
+CONFIGURING QUALITY GATES
+======================
+http://<SonarQubePublicip>:90000
+Quality Gates-> create 
+    Name: roboshop
+    Add Condition
+        On Overall code
+            Security Rating
+            Value: A
+            Maintenability rating
+            Calue: A
+            Vulnerabilities
+            Value: 0
+            Bugs
+            Value: 0
+            Code Smells
+            Value : 0
+    Finally. click on 3 dots and set as default
+
 CREATING WEB-HOOK
 =================
+In SonarQube Server
+http://<SonarQubePublicip>:90000
+Administration -> configurations-> webhooks
+    Create -> Name: jenkins URL: http://<jenkinspublicip>:8080/sonarqube-webhook/
+In Jenkins
 https://github.com/mramsudheer/jenkins.git
 Settings -> webhooks -> Create 
 Payload URL: http://<master publicip>:8080/github-webhook/
