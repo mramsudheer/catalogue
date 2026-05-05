@@ -122,6 +122,9 @@ In Jenkins URL -> Settings -> System -> SonarQube servers -> SonarQube installat
     Server URL:http://<SonarQubePublicip>:90000
 Create a Credential:secret text with generated tocken abv(sonar-creds)
 
+After build success, in SonarQube server url we can see roboshop-catalogue 
+    under Administration->Projects-> Management
+
 CREATING WEB-HOOK
 =================
 https://github.com/mramsudheer/jenkins.git
