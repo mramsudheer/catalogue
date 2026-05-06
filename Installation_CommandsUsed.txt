@@ -152,6 +152,7 @@ In SonarQube Server
 http://<SonarQubePublicip>:90000
 Administration -> configurations-> webhooks
     Create -> Name: jenkins URL: http://<jenkinspublicip>:8080/sonarqube-webhook/
+
 In Jenkins
 https://github.com/mramsudheer/jenkins.git
 Settings -> webhooks -> Create 
