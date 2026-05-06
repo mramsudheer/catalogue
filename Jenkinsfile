@@ -80,15 +80,15 @@ pipeline{
                         def alerts = readJSON text: body
 
                         if (alerts.size() == 0) {
-                            echo "✅ No HIGH or CRITICAL Dependabot alerts found. Pipeline continues."
+                            echo " No HIGH or CRITICAL Dependabot alerts found. Pipeline continues."
                         } else {
-                            echo "🚨 Found ${alerts.size()} HIGH/CRITICAL Dependabot alert(s):"
+                            echo "Found ${alerts.size()} HIGH/CRITICAL Dependabot alert(s):"
                             alerts.each { alert ->
                                 def pkg      = alert.security_vulnerability?.package?.name ?: 'unknown'
                                 def severity = alert.security_advisory?.severity?.toUpperCase() ?: 'UNKNOWN'
                                 def summary  = alert.security_advisory?.summary ?: 'No summary'
                                 def fixedIn  = alert.security_vulnerability?.first_patched_version?.identifier ?: 'No fix available'
-                                echo "  ❌ [${severity}] ${pkg} — ${summary} (Fixed in: ${fixedIn})"
+                                echo " [${severity}] ${pkg} — ${summary} (Fixed in: ${fixedIn})"
                             }
                             error "Pipeline failed: ${alerts.size()} HIGH/CRITICAL Dependabot alert(s) detected."
                         }
