@@ -132,7 +132,7 @@ git url -> settings(user navigation menu-on top right side) -> Developer Setting
                 Token name: jenkins-scan
                 Repository access:  Only select repositories)
                 Permissions -> Add Permissions -> Select repository permissions:Dependabot alerts
-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
+REDACTED_FOR_TRAINING_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
 
 Create a Credential:secret text with generated tocken abv(sonar-creds)
 In jenkins URL, settings -> Credentials - secret text -> github-token(with abv token)
