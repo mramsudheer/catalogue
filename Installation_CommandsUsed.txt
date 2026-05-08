@@ -1,5 +1,4 @@
-https://github.com/mramsudheer/jenkins.git
-
+https://github.com/mramsudheer/catalogue.git
 JENKINS MASTER
 ==============
 
@@ -64,6 +63,7 @@ Host: <Agent Private IP>
 Credentials:
     1. ID:ssh-auth (ssh-auth)
     2. AWS Credentials (aws_credts)
+    
 Host Key Verification Strategy:Non verifying Verification Strategy
 Availability: Keep this agent online as mush as possible
 
@@ -74,7 +74,7 @@ ERROR: permission denied while trying to connect to the docker API at unix:///va
 CREATE A FOLDER
 ===============
 In Jenkins Master URL -> New Item -> Folder(ROBOSHOP)
-in this folder -> New Item -> pipeline(catalogue) -> Configure -> Pipeline -> Pipeline script from SCM -> 
+in this folder -> (creating a project)New Item -> pipeline(catalogue-unit-tests) -> Configure -> Pipeline -> Pipeline script from SCM -> 
     SCM: Git
     Repository URL:https://github.com/mramsudheer/catalogue.git
     Branch Specifier: main
@@ -91,7 +91,7 @@ We can create using Terraform or From console
 
 CREATE SonarQube
 ===============
-marketplace -> SonarQube CE on AWS t2.medium
+marketplace -> SonarQube CE on AWS t2.medium(ami-0e132678e65cadfcc)
 Advanced details -> Spot Instance
 
 ON JENKINS SERVER
@@ -100,7 +100,7 @@ cd GitFiles
 git clone https://github.com/mramsudheer/catalogue.git
 cd catalog
 chmod 400 Rams.pem
-ssh -i <key.pem> ubuntu@ipaddress
+ssh -i <key.pem> ubuntu@<SonarQubepublicipaddress>
 cat /opt/default-sonar-login.txt
 <SonarQubePublicip>:90000
 
@@ -109,8 +109,7 @@ http://<SonarQubePublicip>:9000/account/security
     Name: Jenkins
     Type: Global Analysis Token
     Expires on : 30 days
-    Notedown the generated tocken(sqa_8f0062ff4cbf9d15f6cea8bb189136474b9f6d96)
-
+    Notedown the generated tocken(sqa_bf006a22f42a15e4bdeb2e2546a9a1072aae71af)
 
 
 In Jenkins URL -> Settings -> tools-> SonarQube Scanner installations -> Add SonarQube installations
@@ -122,7 +121,30 @@ In Jenkins URL -> Settings -> System -> SonarQube servers -> SonarQube installat
     Server URL:http://<SonarQubePublicip>:90000
 Create a Credential:secret text with generated tocken abv(sonar-creds)
 
-After build success, in SonarQube server url we can see roboshop-catalogue 
+DEPENDABOT
+==========
+git url -> settings -> Advanced Security -> Dependabot(Enable) and Dependency graph (Enable)
+            Security and quality -> Dependabot alerts -> view Dependabot alerts 
+***********************************************************************************************
+TO GENERATE TOKEN
+git url -> settings(user navigation menu-on top right side) -> Developer Settings -> personal access tokens -> 
+            Fine-grained tokens -> Generate new token
+                Token name: jenkins-scan
+                Repository access:  Only select repositories)
+                Permissions -> Add Permissions -> Select repository permissions:Dependabot alerts
+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
+
+Create a Credential:secret text with generated tocken abv(sonar-creds)
+In jenkins URL, settings -> Credentials - secret text -> github-token(with abv token)
+
+curl -L \
+  -H "Accept: application/vnd.github+json" \
+  -H "Authorization: Bearer <ABV OKEN>" \
+  -H "X-GitHub-Api-Version: 2026-03-10" \
+  https://api.github.com/repos/mramsudheer/catalogue/dependabot/alerts
+***********************************************************************************************  
+
+After build success, in SonarQube server url we can see roboshop-catalogue-unit-tests
     under Administration->Projects-> Management
 
 in SonarQube server url, Administration -> General Settings-> Mode-> Standard
@@ -153,6 +175,25 @@ http://<SonarQubePublicip>:90000
 Administration -> configurations-> webhooks
     Create -> Name: jenkins URL: http://<jenkinspublicip>:8080/sonarqube-webhook/
 
+INSTALL TRIVY in JENKINS AGENT
+===========
+curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.70.0
+in Agent
+
+for just checking:
+docker images
+trivy image <imagename>
+
+trivy image \
+--scanners vuln \
+--pkg-types os \
+--vuln-type os \
+--severity HIGH,MEDIUM,CRITICAL \
+--format table \
+--exit-code 1 \
+--quiet \
+424848769611.dkr.ecr.us-east-1.amazonaws.com/roboshop/catalogue:1.0.0
+====================================================================================================
 In Jenkins
 https://github.com/mramsudheer/jenkins.git
 Settings -> webhooks -> Create 

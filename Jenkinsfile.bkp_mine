@@ -1,69 +1,61 @@
-pipeline {
-    agent {
-        node {
-            label 'roboshop' 
-        } 
+pipeline{
+    agent{
+        node{
+            label 'roboshop'
+        }
     }
-    environment {
+    environment{
         appVersion = ""
-        ACC_ID = "160885265516"
+        ACC_ID = "424848769611"
         region = "us-east-1"
     }
-    options {
-        //disableConcurrentBuilds()
-        timeout(time: 5, unit: 'MINUTES')
-    } 
-    /* parameters {
-        string(name: 'PERSON', defaultValue: 'Mr Jenkins', description: 'Who should I say hello to?')
-        text(name: 'BIOGRAPHY', defaultValue: '', description: 'Enter some information about the person')
-        booleanParam(name: 'DEPLOY', defaultValue: false, description: 'Toggle this value')
-        choice(name: 'CHOICE', choices: ['One', 'Two', 'Three'], description: 'Pick something')
-        password(name: 'PASSWORD', defaultValue: 'SECRET', description: 'Enter a password')
-    } */
-    stages {
+    options{
+        timeout(time: 5, unit:'MINUTES' )
+    }
+    stages{
         stage('Read version'){
-            steps {
-                script {
+            steps{
+                script{
                     // Load and parse the JSON file
                     def packageJson = readJSON file: 'package.json'
-                    
-                    // Access fields directly
+
+                    // Access the Fields Directly
                     appVersion = packageJson.version
                     echo "Building version ${appVersion}"
                 }
             }
         }
-        /* stage('Install Dependencies') {
-            steps {
+        /* stage('Install Dependencies'){ // VMs Scanning
+            steps{
                 script{
                     sh """
                         npm install
                     """
                 }
             }
-        } */
-        /* stage ('SonarQube Analysis'){
-            steps {
-                script {
-                    def scannerHome = tool name: 'sonar-8' // agent configuration
-                    withSonarQubeEnv('sonar-server') { // analysing and uploading to server
-                        sh "${scannerHome}/bin/sonar-scanner"
+        }*/
+        /*stage('SonarQube Analysis'){ // Code Scanning
+            steps{
+                script{
+                    def scannerHome = tool name: 'Sonar-8.0' //Agent configuration Name
+                    withSonarQubeEnv('sonar-server') { // 'sonar-server' must match your Jenkins=>System Config name(this is for analysing and uploading to the server)
+                        sh "${scannerHome}/bin/sonar-scanner" // This commands reads sonar-project.properties file
                     }
                 }
             }
         }
-        stage("Quality Gate") {
+        stage("Quality Gate") { // Code Scanning
             steps {
               timeout(time: 1, unit: 'HOURS') {
                 waitForQualityGate abortPipeline: true
               }
             }
-        } */
-        stage('Dependabot Alerts Check') {
+        }*/
+        stage('Dependabot Alerts Check') { /* Library Scanning */
             steps {
                 withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
                     script {
-                        def owner = 'daws-88s'
+                        def owner = 'mramsudheer'
                         def repo  = 'catalogue'
 
                         def response = sh(
@@ -88,7 +80,7 @@ pipeline {
                         def alerts = readJSON text: body
 
                         if (alerts.size() == 0) {
-                            echo "No HIGH or CRITICAL Dependabot alerts found. Pipeline continues."
+                            echo " No HIGH or CRITICAL Dependabot alerts found. Pipeline continues."
                         } else {
                             echo "Found ${alerts.size()} HIGH/CRITICAL Dependabot alert(s):"
                             alerts.each { alert ->
@@ -104,20 +96,26 @@ pipeline {
                 }
             }
         }
-        stage('Build Image') {
-            steps {
-               script{
-                    withAWS(credentials: 'aws-creds', region: "${region}") {
+        stage('Build Docker Image'){
+            steps{
+                /*script{
+                    sh """
+                        docker build -t catalogue:${appVersion} .
+                    """
+                }*/
+                script{
+                    withAWS(credentials: 'aws_credts', region: "${region}"){
                         // Commands here have AWS authentication
                         sh """
-                            
+                            aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin  ${ACC_ID}.dkr.ecr.us-east-1.amazonaws.com
                             docker build -t ${ACC_ID}.dkr.ecr.${region}.amazonaws.com/roboshop/catalogue:${appVersion} .
+                            docker push ${ACC_ID}.dkr.ecr.${region}.amazonaws.com/roboshop/catalogue:${appVersion}
                         """
                     }
                 }
             }
         }
-        stage('Trivy OS Scan') {
+        stage('Trivy OS Scan') { /* Image Scanning */
             steps {
                 script {
                     // Generate table report
@@ -151,42 +149,9 @@ pipeline {
                     )
 
                     if (scanResult != 0) {
-                        error "🚨 Trivy found HIGH/MEDIUM OS vulnerabilities. Pipeline failed."
+                        error "Trivy found HIGH/MEDIUM OS vulnerabilities. Pipeline failed."
                     } else {
-                        echo "✅ No HIGH or MEDIUM OS vulnerabilities found. Pipeline continues."
-                    }
-                }
-            }
-        }
-        stage('Trivy Dockerfile Scan') 
-        {
-            steps {
-                script {
-                    sh """
-                        trivy config \
-                            --severity HIGH,MEDIUM \
-                            --format table \
-                            --output trivy-dockerfile-report.txt \
-                            Dockerfile
-                    """
-
-                    sh 'cat trivy-dockerfile-report.txt'
-
-                    def scanResult = sh(
-                        script: """
-                            trivy config \
-                                --severity HIGH,MEDIUM \
-                                --exit-code 1 \
-                                --format table \
-                                Dockerfile
-                        """,
-                        returnStatus: true
-                    )
-
-                    if (scanResult != 0) {
-                        error "Trivy found HIGH/MEDIUM misconfigurations in Dockerfile. Pipeline failed."
-                    } else {
-                        echo "No HIGH or MEDIUM Dockerfile misconfigurations found. Pipeline continues."
+                        echo "No HIGH or MEDIUM OS vulnerabilities found. Pipeline continues."
                     }
                 }
             }
@@ -203,20 +168,22 @@ pipeline {
                     }
                 }
             }
-        }
+        } 
     }
+    post {
+        always{
+            //Clean Workspace, Saves Disk Space, 
 
-    // post build
-    post { 
-        always { 
-            echo 'I will always say Hello again!'
-            cleanWs()
-        }
-        success {
-            echo "pipeline success"
-        }
-        failure {
-            echo "pipeline failure"
+            //It ensures that the next time the job runs, 
+            // it starts with a completely empty folder. 
+            // This prevents old files from a previous run 
+            // (like old compiled classes or cached config files) from interfering with the new build.
+
+            //If your build handles sensitive data, certificates, or temporary credentials, 
+            // cleanWs() ensures those files aren't left sitting on the build agent after 
+            // the job is done.
+
+            cleanWs() 
         }
     }
 }
