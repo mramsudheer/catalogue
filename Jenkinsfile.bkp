@@ -36,6 +36,9 @@ pipeline {
         /* stage('Install Dependencies') {
             steps {
                 script{
+                    /* When you run npm test, it looks inside the project's \catalogue-unit-tests\package.json file, 
+                        finds the "scripts" object, and executes whatever command is assigned 
+                        to the key "test". 
                     sh """
                         npm install
                     """
